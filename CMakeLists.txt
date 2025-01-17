@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22)
 
 project(monolith VERSION 0.1.0)
 
 option(MONOLITH_DEVELOPER "Enable ${PROJECT_NAME} developer mode" OFF)
 option(MONOLITH_BENCHMARK "Enable ${PROJECT_NAME} benchmark module" OFF)
+
+set(MONOLITH_BENCHMARK ON)
+set(MONOLITH_DEVELOPER ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 

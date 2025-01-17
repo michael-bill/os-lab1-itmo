@@ -2,6 +2,9 @@ get_filename_component(MONOLITH_BENCH_SOURCE_PATH "./${PROJECT_NAME}" ABSOLUTE)
 
 set(MONOLITH_BENCH_TARGET_BASE "${PROJECT_NAME}-bench")
 
+# Отключаем любые оптимизации
+add_compile_options(-O0)
+
 macro(MONOLITH_BENCH_DECLARE suffix file)
     add_executable(
         ${MONOLITH_BENCH_TARGET_BASE}-${suffix}
@@ -15,4 +18,4 @@ macro(MONOLITH_BENCH_DECLARE suffix file)
     )
 endmacro()
 
-MONOLITH_BENCH_DECLARE(hello-world HelloWorldBench.cpp)
+MONOLITH_BENCH_DECLARE(first-test FirstTestBench.cpp)
