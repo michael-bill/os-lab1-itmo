@@ -20,3 +20,4 @@ endmacro()
 
 MONOLITH_BENCH_DECLARE(first-test FirstTestBench.cpp)
 MONOLITH_BENCH_DECLARE(ema-search-str EmaSearchStrBench.cpp)
+MONOLITH_BENCH_DECLARE(short-path ShortPathBench.cpp)
