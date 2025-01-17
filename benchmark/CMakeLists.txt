@@ -19,3 +19,4 @@ macro(MONOLITH_BENCH_DECLARE suffix file)
 endmacro()
 
 MONOLITH_BENCH_DECLARE(first-test FirstTestBench.cpp)
+MONOLITH_BENCH_DECLARE(ema-search-str EmaSearchStrBench.cpp)
