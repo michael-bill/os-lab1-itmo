@@ -308,7 +308,7 @@ BM_Dijkstra/iterations:100   23573129 ns     23570914 ns          100
 ./build/benchmark/monolith-bench-short-path  2.37s user 0.01s system 99% cpu 2.381 total
 ```
 
-`./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
 
 ```
 top - 10:05:31 up 10 days, 18:56,  2 users,  load average: 0.02, 0.01, 0.00
@@ -321,7 +321,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17092.7 avail Mem
  305540 hulumul+  25   5    9052   6144   4096 R 100.0   0.0   0:00.20 monolith-bench-short-path
  ```
 
-`./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
 
 ![Показатели работы программы в htop](./pics/htop-2.png)
 
@@ -339,6 +339,370 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17092.7 avail Mem
     - Время выполнения одной итерации алгоритма Дейкстры составляет **23 570 914 наносекунд** (23.57 мс) для графа с 10 000 вершин и 100 000 рёбер.
     - Количество итераций — 100, что позволяет получить стабильные и достоверные результаты.
 
-## Увеличение числа нагрузчиков
+## Увеличение количества нагрузчиков
 
-todo:
+### 1. **[ema-search-str](./benchmark/monolith/EmaSearchStrBench.cpp)** — Поиск подстроки в тексте, расположенном во внешней памяти.
+
+#### **1 поток**
+
+`> time ./build/benchmark/monolith-bench-ema-search-str`
+
+```
+2025-01-18T10:20:20+00:00
+Running ./build/benchmark/monolith-bench-ema-search-str
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.03, 0.05, 0.01
+--------------------------------------------------------------------------------------------------
+Benchmark                                                        Time             CPU   Iterations
+--------------------------------------------------------------------------------------------------
+BM_SubstringSearchInFile/1024/iterations:100/threads:1     2291873 ns      2291875 ns          100
+BM_SubstringSearchInFile/4096/iterations:100/threads:1     1471323 ns      1471156 ns          100
+BM_SubstringSearchInFile/16384/iterations:100/threads:1     885972 ns       885984 ns          100
+BM_SubstringSearchInFile/65536/iterations:100/threads:1     859796 ns       859809 ns          100
+./build/benchmark/monolith-bench-ema-search-str  0.30s user 0.26s system 99% cpu 0.554 total
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & top -p $!`
+
+```
+top - 10:21:32 up 10 days, 19:13,  2 users,  load average: 0.04, 0.05, 0.01
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  6.5 sy, 11.3 ni, 82.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14699.6 free,    893.9 used,   2773.1 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17089.7 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 307716 hulumul+  25   5    7012   4224   4096 R 100.0   0.0   0:00.19 monolith-bench-search-str
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop.png)
+
+- **Время выполнения**: 0.554 секунды.
+- **Нагрузка на CPU**: 100% (1 поток).
+- **Распределение времени**: 0.30s user, 0.26s system.
+- **Вывод**: Процесс полностью загружает одно ядро процессора, при этом время выполнения распределено между пользовательскими вычислениями и системными вызовами, связанными с чтением данных с диска.
+
+#### **4 потока**
+
+`> time ./build/benchmark/monolith-bench-ema-search-str`
+
+```
+2025-01-18T10:23:40+00:00
+Running ./build/benchmark/monolith-bench-ema-search-str
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.12, 0.06, 0.01
+--------------------------------------------------------------------------------------------------
+Benchmark                                                        Time             CPU   Iterations
+--------------------------------------------------------------------------------------------------
+BM_SubstringSearchInFile/1024/iterations:100/threads:4     2859293 ns      2859003 ns          400
+BM_SubstringSearchInFile/4096/iterations:100/threads:4     1952734 ns      1952197 ns          400
+BM_SubstringSearchInFile/16384/iterations:100/threads:4    1224898 ns      1224740 ns          400
+BM_SubstringSearchInFile/65536/iterations:100/threads:4    1040123 ns      1039736 ns          400
+./build/benchmark/monolith-bench-ema-search-str  1.47s user 1.37s system 338% cpu 0.838 total
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & top -p $!`
+
+```
+top - 10:24:21 up 10 days, 19:15,  2 users,  load average: 0.06, 0.05, 0.00
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.6 us, 21.3 sy, 45.9 ni, 31.1 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14699.9 free,    893.6 used,   2773.2 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17090.1 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 308537 hulumul+  25   5  228208   4224   4096 R 400.0   0.0   0:00.80 monolith-bench-search-str
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-3.png)
+
+- **Время выполнения**: 0.838 секунды.
+- **Нагрузка на CPU**: 338% (4 потока).
+- **Распределение времени**: 1.47s user, 1.37s system.
+- **Вывод**: Увеличение количества потоков до 4 привело к росту нагрузки на CPU до 338%. Время выполнения увеличилось, так как в каждом потоке запускается тот же самый алгоритм, что приводит к увеличению общего объема работы.
+
+#### **8 потоков**
+
+`> time ./build/benchmark/monolith-bench-ema-search-str`
+
+```
+2025-01-18T10:29:16+00:00
+Running ./build/benchmark/monolith-bench-ema-search-str
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.09, 0.07, 0.01
+--------------------------------------------------------------------------------------------------
+Benchmark                                                        Time             CPU   Iterations
+--------------------------------------------------------------------------------------------------
+BM_SubstringSearchInFile/1024/iterations:100/threads:8     5179667 ns      3942905 ns          800
+BM_SubstringSearchInFile/4096/iterations:100/threads:8     3183265 ns      2506592 ns          800
+BM_SubstringSearchInFile/16384/iterations:100/threads:8    2049697 ns      1591126 ns          800
+BM_SubstringSearchInFile/65536/iterations:100/threads:8    1693511 ns      1298340 ns          800
+./build/benchmark/monolith-bench-ema-search-str  4.07s user 3.41s system 527% cpu 1.418 total
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & top -p $!`
+
+```
+top - 10:29:44 up 10 days, 19:21,  2 users,  load average: 0.75, 0.21, 0.06
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us, 34.4 sy, 65.6 ni,  0.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14692.3 free,    900.8 used,   2773.5 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17082.8 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 310155 hulumul+  25   5  523136   4352   4096 R 600.0   0.0   0:01.21 monolith-bench-                                                                           
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-4.png)
+
+- **Время выполнения**: 1.418 секунд.
+- **Нагрузка на CPU**: 527% (8 потоков).
+- **Распределение времени**: 4.07s user, 3.41s system.
+- **Вывод**: При 8 потоках нагрузка на CPU достигла 527%.
+
+#### **16 потоков**
+
+`> time ./build/benchmark/monolith-bench-ema-search-str`
+
+```
+2025-01-18T10:31:39+00:00
+Running ./build/benchmark/monolith-bench-ema-search-str
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.60, 0.35, 0.13
+---------------------------------------------------------------------------------------------------
+Benchmark                                                         Time             CPU   Iterations
+---------------------------------------------------------------------------------------------------
+BM_SubstringSearchInFile/1024/iterations:100/threads:16    10104102 ns      3999858 ns         1600
+BM_SubstringSearchInFile/4096/iterations:100/threads:16     6356412 ns      2624466 ns         1600
+BM_SubstringSearchInFile/16384/iterations:100/threads:16    3693188 ns      1617534 ns         1600
+BM_SubstringSearchInFile/65536/iterations:100/threads:16    3291974 ns      1326827 ns         1600
+./build/benchmark/monolith-bench-ema-search-str  8.35s user 6.97s system 584% cpu 2.622 total
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & top -p $!`
+
+```
+top - 10:32:01 up 10 days, 19:23,  2 users,  load average: 0.43, 0.32, 0.12
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us, 35.9 sy, 64.1 ni,  0.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14695.6 free,    897.3 used,   2773.8 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17086.4 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 311236 hulumul+  25   5 1112992   4480   4096 R 581.8   0.0   0:01.25 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-ema-search-str > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-5.png)
+
+- **Время выполнения**: 2.622 секунды.
+- **Нагрузка на CPU**: 584% (16 потоков).
+- **Распределение времени**: 8.35s user, 6.97s system.
+- **Вывод**: При 16 потоках нагрузка на CPU достигла 584%, но время выполнения увеличилось почти в 5 раз по сравнению с 1 потоком. Это связано с тем, что мы достигли максимальной мощности машины и дальнейшее увеличение потоков приведет к ещё худгму времени выполнения.
+
+#### Общий вывод
+
+Увеличение количества потоков в задачах, связанных с поиском подстроки в тексте, расположенном во внешней памяти, имеет ограниченную эффективность из-за ограничений ввода-вывода. Оптимальное количество потоков для данной задачи — 6, равное количеству ядер процессора.
+
+### 2. **[short-path](./benchmark/monolith/ShortPathBench.cpp)** — Поиск кратчайшего пути в графе.
+
+#### **1 поток**
+
+`> time ./build/benchmark/monolith-bench-short-path`
+
+```
+2025-01-18T10:38:35+00:00
+Running ./build/benchmark/monolith-bench-short-path
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 4.27, 2.27, 0.95
+-------------------------------------------------------------------------------
+Benchmark                                     Time             CPU   Iterations
+-------------------------------------------------------------------------------
+BM_Dijkstra/iterations:100/threads:1   22875390 ns     22873369 ns          100
+./build/benchmark/monolith-bench-short-path  2.31s user 0.01s system 99% cpu 2.311 total
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
+
+```
+top - 10:38:53 up 10 days, 19:30,  2 users,  load average: 3.33, 2.16, 0.94
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy, 16.7 ni, 80.0 id,  3.3 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14683.9 free,    908.6 used,   2774.2 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17075.0 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 313355 hulumul+  25   5    9044   6144   4096 R 100.0   0.0   0:00.20 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-6.png)
+
+- **Время выполнения**: 2.311 секунды.
+- **Нагрузка на CPU**: 100% (1 поток).
+- **Распределение времени**: 2.31s user, 0.01s system.
+- **Вывод**: Процесс полностью загружает одно ядро процессора. Время выполнения почти полностью приходится на пользовательские вычисления, что характерно для вычислительно сложных задач, таких как алгоритм Дейкстры.
+
+#### **4 потока**
+
+`> time ./build/benchmark/monolith-bench-short-path`
+
+```
+2025-01-18T10:40:47+00:00
+Running ./build/benchmark/monolith-bench-short-path
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.60, 1.50, 0.84
+-------------------------------------------------------------------------------
+Benchmark                                     Time             CPU   Iterations
+-------------------------------------------------------------------------------
+BM_Dijkstra/iterations:100/threads:4   27683609 ns     27681006 ns          400
+./build/benchmark/monolith-bench-short-path  11.17s user 0.02s system 343% cpu 3.253 total
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
+
+```
+top - 10:41:19 up 10 days, 19:32,  2 users,  load average: 1.14, 1.53, 0.87
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  1.7 sy, 65.0 ni, 33.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14692.0 free,    900.4 used,   2774.4 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17083.2 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 314283 hulumul+  25   5  230956  11520   4096 R 400.0   0.1   0:00.79 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-7.png)
+
+- **Время выполнения**: 3.253 секунды.
+- **Нагрузка на CPU**: 343% (4 потока).
+- **Распределение времени**: 11.17s user, 0.02s system.
+- **Вывод**: Увеличение количества потоков до 4 привело к росту нагрузки на CPU до 343%.
+
+#### **8 потоков**
+
+`> time ./build/benchmark/monolith-bench-short-path`
+
+```
+2025-01-18T10:42:18+00:00
+Running ./build/benchmark/monolith-bench-short-path
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.51, 1.29, 0.82
+-------------------------------------------------------------------------------
+Benchmark                                     Time             CPU   Iterations
+-------------------------------------------------------------------------------
+BM_Dijkstra/iterations:100/threads:8   49975189 ns     37709976 ns          800
+./build/benchmark/monolith-bench-short-path  30.43s user 0.03s system 588% cpu 5.181 total
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
+
+```
+top - 10:42:35 up 10 days, 19:34,  2 users,  load average: 0.86, 1.33, 0.85
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.5 us,  1.5 sy, 89.6 ni,  7.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14692.2 free,    900.1 used,   2774.5 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17083.6 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 314988 hulumul+  25   5  526848  19296   4096 R 600.0   0.1   0:01.19 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-8.png)
+
+- **Время выполнения**: 5.181 секунды.
+- **Нагрузка на CPU**: 588% (8 потоков).
+- **Распределение времени**: 30.43s user, 0.03s system.
+- **Вывод**: При 8 потоках нагрузка на CPU достигла 588%. Время выполнения увеличилось, так как каждый поток выполняет независимую копию алгоритма.
+
+#### **16 потоков**
+
+`> time ./build/benchmark/monolith-bench-short-path`
+
+```
+2025-01-18T10:43:22+00:00
+Running ./build/benchmark/monolith-bench-short-path
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 1.16, 1.38, 0.89
+--------------------------------------------------------------------------------
+Benchmark                                      Time             CPU   Iterations
+--------------------------------------------------------------------------------
+BM_Dijkstra/iterations:100/threads:16   99236372 ns     38374429 ns         1600
+./build/benchmark/monolith-bench-short-path  61.99s user 0.05s system 591% cpu 10.492 total
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
+
+```
+top - 10:43:48 up 10 days, 19:35,  2 users,  load average: 2.68, 1.77, 1.03
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  4.9 sy, 93.4 ni,  1.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14680.7 free,    911.4 used,   2774.6 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17072.2 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                   
+ 315736 hulumul+  25   5 1119772  34560   4096 R 600.0   0.2   0:01.20 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-9.png)
+
+- **Вывод**: При 16 потоках нагрузка на CPU достигла 591%, но время выполнения увеличилось почти в 5 раз по сравнению с 1 потоком. Это связано с тем, что каждый поток выполняет независимую копию алгоритма, что приводит к значительному увеличению общего объема работы и конкуренции за ресурсы процессора.
+
+#### Общий вывод
+
+Увеличение количества потоков сильно увеличивает нагрузку на систему, задействуя больше ядер для работы.
+
