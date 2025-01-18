@@ -13,7 +13,7 @@ void BM_VectorPushBack(benchmark::State& state) {
 }
 
 // Регистрируем бенчмарк
-BENCHMARK(BM_VectorPushBack)->Range(8, 8 << 10);
+BENCHMARK(BM_VectorPushBack)->Range(8, 8 << 10)->Iterations(1);
 
 // Основная функция для запуска бенчмарков
 BENCHMARK_MAIN();
