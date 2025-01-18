@@ -653,7 +653,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17083.6 avail Mem
  314988 hulumul+  25   5  526848  19296   4096 R 600.0   0.1   0:01.19 monolith-bench-
 ```
 
-`> ./build/benchmark/monolith-bench-short-path > /dev/null & htop -p $!`
+`> ./build/benchmark/monolith-bench-short-path > /dev/null & top -p $!`
 
 ![Показатели работы программы в htop](./pics/htop-8.png)
 
@@ -705,4 +705,179 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17072.2 avail Mem
 #### Общий вывод
 
 Увеличение количества потоков сильно увеличивает нагрузку на систему, задействуя больше ядер для работы.
+
+## Комбинированный бенчмарк
+
+Составим комбинированны бенчмарк, который включает в себя одновременное выполнение двух вышеописанных. Предположительно мы должны увидеть равномерную нагрузку на CPU и на диск.
+
+### **[multi-bench](./benchmark/monolith/MultiBench.cpp)** — Комбинированный бенчмарк.
+
+`> ./build/benchmark/monolith-bench-milti`
+
+```
+Running ./build/benchmark/monolith-bench-milti
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.15, 0.06, 0.08
+------------------------------------------------------------------------------------
+Benchmark                                          Time             CPU   Iterations
+------------------------------------------------------------------------------------
+BM_CombinedBenchmark/1024/iterations:100    25664531 ns     25663802 ns          100
+BM_CombinedBenchmark/4096/iterations:100    24482844 ns     24481134 ns          100
+BM_CombinedBenchmark/16384/iterations:100   23779874 ns     23778452 ns          100
+BM_CombinedBenchmark/65536/iterations:100   23919418 ns     23917709 ns          100
+```
+
+`> sudo perf stat ./build/benchmark/monolith-bench-milti`
+
+```
+ Performance counter stats for './build/benchmark/monolith-bench-milti':
+          9,908.48 msec task-clock                       #    1.000 CPUs utilized             
+                29      context-switches                 #    2.927 /sec                      
+                 0      cpu-migrations                   #    0.000 /sec                      
+             3,163      page-faults                      #  319.221 /sec                      
+   <not supported>      cycles                                                                
+   <not supported>      instructions                                                          
+   <not supported>      branches                                                              
+   <not supported>      branch-misses                                                         
+
+       9.909449739 seconds time elapsed
+
+       9.480687000 seconds user
+       0.427987000 seconds sys
+```
+
+`> time ./build/benchmark/monolith-bench-milti`
+```
+2025-01-18T11:34:14+00:00
+Running ./build/benchmark/monolith-bench-milti
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.27, 0.11, 0.10
+------------------------------------------------------------------------------------
+Benchmark                                          Time             CPU   Iterations
+------------------------------------------------------------------------------------
+BM_CombinedBenchmark/1024/iterations:100    25440955 ns     25440449 ns          100
+BM_CombinedBenchmark/4096/iterations:100    24615683 ns     24615215 ns          100
+BM_CombinedBenchmark/16384/iterations:100   24326351 ns     24325272 ns          100
+BM_CombinedBenchmark/65536/iterations:100   24039251 ns     24037517 ns          100
+./build/benchmark/monolith-bench-milti  9.47s user 0.45s system 99% cpu 9.925 total
+```
+
+`> ./build/benchmark/monolith-bench-milti > /dev/null & top -p $!`
+
+```
+top - 11:34:44 up 10 days, 20:26,  2 users,  load average: 0.27, 0.13, 0.10
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.1 us,  1.0 sy, 15.8 ni, 83.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14670.2 free,    918.0 used,   2778.8 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17065.6 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                              
+ 323706 hulumul+  25   5    9068   6200   4224 R 100.0   0.0   0:03.20 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-milti > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-10.png)
+
+## Запуск комбинированного бенчмарка с агрессивными оптимизациями
+
+Добавим `add_compile_options(-Ofast)` в cmake
+
+`> ./build/benchmark/monolith-bench-milti`
+
+```
+2025-01-18T11:44:08+00:00
+Running ./build/benchmark/monolith-bench-milti
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.02, 0.07, 0.08
+------------------------------------------------------------------------------------
+Benchmark                                          Time             CPU   Iterations
+------------------------------------------------------------------------------------
+BM_CombinedBenchmark/1024/iterations:100     5041651 ns      5041438 ns          100
+BM_CombinedBenchmark/4096/iterations:100     4510550 ns      4510559 ns          100
+BM_CombinedBenchmark/16384/iterations:100    4094728 ns      4094585 ns          100
+BM_CombinedBenchmark/65536/iterations:100    4173710 ns      4173711 ns          100
+```
+
+`> sudo perf stat ./build/benchmark/monolith-bench-milti`
+
+```
+Performance counter stats for './build/benchmark/monolith-bench-milti':
+
+          1,775.56 msec task-clock                       #    1.000 CPUs utilized             
+                 4      context-switches                 #    2.253 /sec                      
+                 0      cpu-migrations                   #    0.000 /sec                      
+             3,176      page-faults                      #    1.789 K/sec                     
+   <not supported>      cycles                                                                
+   <not supported>      instructions                                                          
+   <not supported>      branches                                                              
+   <not supported>      branch-misses                                                         
+
+       1.776001031 seconds time elapsed
+
+       1.487969000 seconds user
+       0.287998000 seconds sys
+```
+
+`> time ./build/benchmark/monolith-bench-milti`
+```
+2025-01-18T11:45:31+00:00
+Running ./build/benchmark/monolith-bench-milti
+Run on (6 X 1999.99 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 4096 KiB (x3)
+  L3 Unified 16384 KiB (x1)
+Load Average: 0.00, 0.05, 0.07
+------------------------------------------------------------------------------------
+Benchmark                                          Time             CPU   Iterations
+------------------------------------------------------------------------------------
+BM_CombinedBenchmark/1024/iterations:100     4967506 ns      4966901 ns          100
+BM_CombinedBenchmark/4096/iterations:100     4604591 ns      4604595 ns          100
+BM_CombinedBenchmark/16384/iterations:100    4164137 ns      4163927 ns          100
+BM_CombinedBenchmark/65536/iterations:100    4125752 ns      4125539 ns          100
+./build/benchmark/monolith-bench-milti  1.51s user 0.30s system 99% cpu 1.811 total
+```
+
+`> ./build/benchmark/monolith-bench-milti > /dev/null & top -p $!`
+
+```
+top - 11:45:57 up 10 days, 20:37,  2 users,  load average: 0.00, 0.04, 0.07
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  3.3 sy, 13.3 ni, 83.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  17983.7 total,  14670.7 free,    917.1 used,   2779.3 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.  17066.5 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                              
+ 325544 hulumul+  25   5    9048   6144   4096 R 100.0   0.0   0:00.20 monolith-bench-
+```
+
+`> ./build/benchmark/monolith-bench-milti > /dev/null & htop -p $!`
+
+![Показатели работы программы в htop](./pics/htop-11.png)
+
+### Общий вывод
+
+С точки зрения работы операционной системы, результаты комбинированного бенчмарка демонстрируют эффективное взаимодействие различных компонентов ОС. Планировщик процессов обеспечивает стабильное выделение ресурсов CPU, поддерживая высокую утилизацию одного ядра без значительных прерываний. ОС успешно балансирует операции ввода-вывода и интенсивные вычисления, минимизируя задержки и обеспечивая эффективное выполнение обоих типов задач. Низкое количество контекстных переключений свидетельствует об оптимизации накладных расходов на управление процессами. Стабильная производительность при различных размерах блоков данных указывает на эффективное использование иерархии памяти и кэша процессора. В целом, бенчмарк показывает, что современные операционные системы хорошо справляются с управлением ресурсами и оптимизацией производительности в условиях смешанной нагрузки, эффективно балансируя различные операции.
+
+## Вывод
+
+В лабораторной работе я реализовал свой shell, который позволяет запускать программы и выводить время их выполнения.  
+В процессе работы я научился использовать утилиты для диагностики и профилирования, а также оптимизации программ в операционной системе на базе ядра GNU/Linux. Мне очень понравилось, спасибо!
 
