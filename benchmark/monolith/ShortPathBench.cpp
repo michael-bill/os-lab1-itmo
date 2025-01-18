@@ -71,6 +71,6 @@ static void BM_Dijkstra(benchmark::State& state) {
 }
 
 // Регистрируем бенчмарк
-BENCHMARK(BM_Dijkstra)->Iterations(1);;
+BENCHMARK(BM_Dijkstra)->Iterations(100);;
 
 BENCHMARK_MAIN();
