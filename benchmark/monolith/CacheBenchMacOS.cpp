@@ -9,7 +9,7 @@
 
 constexpr size_t FILE_SIZE = 1024ULL * 1024ULL * 1024ULL; // 1 gb
 constexpr size_t BLOCK_SIZE = 4096;
-constexpr int RAND_SEED = 1;
+constexpr int RAND_SEED = 1703;
 
 // Отключение системного кэширования
 void disable_system_cache(int fd) {
