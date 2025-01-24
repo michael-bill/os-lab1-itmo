@@ -140,7 +140,7 @@ BENCHMARK_DEFINE_F(BaseFixture, MixedWorkload_Uncached)(benchmark::State& state)
 }
 
 // Повторяющийся доступ к небольшому набору данных (благоприятный для LRU)
-BENCHMARK_DEFINE_F(BaseFixture, RepeatedAccess_Cached)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(BaseFixture, TightAreaRandomRead_Cached)(benchmark::State& state) {
   int fd = lab2_open("test_data/large_file.bin");
   disable_system_cache(fd);
   const size_t hot_region_size = 10 * BLOCK_SIZE;  // 10 блоков для повторяющегося доступа
@@ -162,7 +162,7 @@ BENCHMARK_DEFINE_F(BaseFixture, RepeatedAccess_Cached)(benchmark::State& state) 
   lab2_close(fd);
 }
 
-BENCHMARK_DEFINE_F(BaseFixture, RepeatedAccess_Uncached)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(BaseFixture, TightAreaRandomRead_Uncached)(benchmark::State& state) {
   int fd = open("test_data/large_file.bin", O_RDONLY);
   disable_system_cache(fd);
   const size_t hot_region_size = 10 * BLOCK_SIZE;  // 10 блоков для повторяющегося доступа
@@ -268,10 +268,10 @@ BENCHMARK_REGISTER_F(BaseFixture, MixedWorkload_Cached)
 BENCHMARK_REGISTER_F(BaseFixture, MixedWorkload_Uncached)
     ->Unit(benchmark::kMillisecond)
     ->Iterations(1);
-BENCHMARK_REGISTER_F(BaseFixture, RepeatedAccess_Cached)
+BENCHMARK_REGISTER_F(BaseFixture, TightAreaRandomRead_Cached)
     ->Unit(benchmark::kMillisecond)
     ->Iterations(1);
-BENCHMARK_REGISTER_F(BaseFixture, RepeatedAccess_Uncached)
+BENCHMARK_REGISTER_F(BaseFixture, TightAreaRandomRead_Uncached)
     ->Unit(benchmark::kMillisecond)
     ->Iterations(1);
 BENCHMARK_REGISTER_F(BaseFixture, WarmedCache)->Unit(benchmark::kMicrosecond)->Iterations(1);
