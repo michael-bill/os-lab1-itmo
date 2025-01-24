@@ -52,6 +52,12 @@ static void BM_SubstringSearchInFile(benchmark::State& state) {
 }
 
 // Регистрируем бенчмарк с разными размерами блоков
-BENCHMARK(BM_SubstringSearchInFile)->Arg(1024)->Arg(4096)->Arg(16384)->Arg(65536)->Iterations(100);
+BENCHMARK(BM_SubstringSearchInFile)
+->Unit(benchmark::kMillisecond)
+->Arg(1024)
+->Arg(4096)
+->Arg(16384)
+->Arg(65536)
+->Iterations(100);
 
 BENCHMARK_MAIN();
