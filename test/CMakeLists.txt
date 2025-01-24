@@ -14,6 +14,7 @@ target_link_libraries(
     ${PROJECT_NAME}
     GTest::gtest
     GTest::gmock
+    lru_cache_lib
 )
 
 gtest_discover_tests(${MONOLITH_TEST_TARGET})
