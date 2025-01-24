@@ -7,9 +7,10 @@
 #include <sys/stat.h>
 #include "lru_cache/file_operations.h"
 
-constexpr size_t FILE_SIZE = 1024ULL * 1024ULL * 1024ULL; // 1 gb
+constexpr size_t FILE_SIZE = 64ULL * 1024ULL * 1024ULL; // 64 mb
 constexpr size_t BLOCK_SIZE = 4096;
 constexpr int RAND_SEED = 1703;
+const int repeat = FILE_SIZE / BLOCK_SIZE; // повторения на чтение или запись = количество блоков
 
 // Отключение системного кэширования
 void disable_system_cache(int fd) {
@@ -43,14 +44,13 @@ BENCHMARK_DEFINE_F(BaseFixture, RandomRead_Cached)(benchmark::State& state) {
     int fd = lab2_open("test_data/large_file.bin");
     disable_system_cache(fd);
     std::mt19937 gen(RAND_SEED);
-    std::uniform_int_distribution<size_t> dist(0, (FILE_SIZE - BLOCK_SIZE) * 10); // Увеличили диапазон в 10 раз
+    std::uniform_int_distribution<size_t> dist(0, (FILE_SIZE - BLOCK_SIZE) * 10);
 
     // Выделяем буфер один раз
     char* buf = new char[BLOCK_SIZE];
 
     for (auto _ : state) {
-        // 1000 операций за один цикл измерения
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < repeat; ++i) {
             off_t offset = static_cast<off_t>(dist(gen) % (FILE_SIZE - BLOCK_SIZE));
             lab2_lseek(fd, offset, SEEK_SET);
             lab2_read(fd, buf, BLOCK_SIZE);
@@ -69,8 +69,7 @@ BENCHMARK_DEFINE_F(BaseFixture, RandomRead_Uncached)(benchmark::State& state) {
     std::uniform_int_distribution<size_t> dist(0, (FILE_SIZE - BLOCK_SIZE) * 10);
 
     for (auto _ : state) {
-        // 1000 операций за один цикл измерения
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < repeat; ++i) {
             off_t offset = static_cast<off_t>(dist(gen) % (FILE_SIZE - BLOCK_SIZE));
             pread(fd, buf, BLOCK_SIZE, offset);
         }
@@ -85,7 +84,7 @@ BENCHMARK_DEFINE_F(BaseFixture, MixedWorkload_Cached)(benchmark::State& state) {
     int fd = lab2_open("test_data/large_file.bin");
     disable_system_cache(fd);
     std::mt19937 gen(RAND_SEED);
-    std::uniform_int_distribution<size_t> pos_dist(0, FILE_SIZE * 10); // Увеличили диапазон
+    std::uniform_int_distribution<size_t> pos_dist(0, FILE_SIZE * 10);
     std::bernoulli_distribution op_dist(0.7); // 70% чтения, 30% записи
 
     // Выделяем буферы один раз
@@ -93,8 +92,7 @@ BENCHMARK_DEFINE_F(BaseFixture, MixedWorkload_Cached)(benchmark::State& state) {
     const char* write_buf = new char[BLOCK_SIZE]{};
 
     for (auto _ : state) {
-        // 1000 операций за цикл
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < repeat; ++i) {
             off_t offset = static_cast<off_t>(pos_dist(gen) % (FILE_SIZE - BLOCK_SIZE));
 
             if (op_dist(gen)) { // Чтение
@@ -123,8 +121,7 @@ BENCHMARK_DEFINE_F(BaseFixture, MixedWorkload_Uncached)(benchmark::State& state)
     const char* write_buf = new char[BLOCK_SIZE]{};
 
     for (auto _ : state) {
-        // 1000 операций за цикл
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < repeat; ++i) {
             off_t offset = static_cast<off_t>(pos_dist(gen) % (FILE_SIZE - BLOCK_SIZE));
             if (op_dist(gen)) {
                 pread(fd, read_buf, BLOCK_SIZE, offset);
