@@ -24,13 +24,17 @@ public:
 
 private:
   struct FileDescriptorInfo {
-    int system_fd;
     off_t current_pos;
-    off_t logical_size;
-    std::string path;
+    ino_t inode;
   };
 
-  using Key = std::pair<int, size_t>;
+  struct InodeInfo {
+    int system_fd;
+    int refcount;
+    off_t logical_size;
+  };
+
+  using Key = std::pair<ino_t, size_t>;
 
   struct CacheBlock {
     Key key;
@@ -41,21 +45,22 @@ private:
 
   struct KeyHash {
     size_t operator()(const Key& k) const {
-      return std::hash<int>()(k.first) ^ std::hash<size_t>()(k.second);
+      return std::hash<ino_t>()(k.first) ^ std::hash<size_t>()(k.second);
     }
   };
 
   size_t block_size;
   size_t capacity;
   std::unordered_map<int, FileDescriptorInfo> open_files;
+  std::unordered_map<ino_t, InodeInfo> inode_map;
   std::unordered_map<Key, CacheBlock, KeyHash> cache_map;
   std::list<Key> lru_list;
-  std::unordered_map<int, std::unordered_set<size_t>> file_blocks;
+  std::unordered_map<ino_t, std::unordered_set<size_t>> file_blocks;
   int next_fd;
 
   void evict();
-  bool loadBlockFromDisk(int fd, size_t block_num, int system_fd, off_t logical_size);
-  bool loadBlockForWrite(int fd, size_t block_num, int system_fd, off_t logical_size);
+  bool loadBlockFromDisk(int fd, size_t block_num);
+  bool loadBlockForWrite(int fd, size_t block_num);
   off_t getFileSize(int system_fd) const;
 };
 

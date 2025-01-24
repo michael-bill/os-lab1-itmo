@@ -100,29 +100,31 @@ TEST_F(LRUCacheTest, SeekOperations) {
   lab2_close(fd);
 }
 
-// 5. Проверка согласованности данных
+// 5. Проверка согласованности данных (один файл, два дескриптора)
 TEST_F(LRUCacheTest, DataConsistency) {
   const char data1[] = "First write";
-  char buffer[sizeof(data1)] = {0};
+  const char data2[] = "Second write";
+  char buffer[sizeof(data2)] = {0};
 
-  // Используем дескриптор для записи и чтения
-  int fd = lab2_open(TEST_FILE);
+  int fd1 = lab2_open(TEST_FILE);
+  int fd2 = lab2_open(TEST_FILE);
 
-  // Запись и сразу чтение через тот же дескриптор
-  lab2_write(fd, data1, sizeof(data1));
-  lab2_lseek(fd, 0, SEEK_SET);
-  lab2_read(fd, buffer, sizeof(data1));
-  EXPECT_STREQ(buffer, data1);
+  // Запись через первый дескриптор
+  lab2_write(fd1, data1, sizeof(data1));
 
-  // Проверка записи на диск
-  lab2_fsync(fd);
-  lab2_close(fd);
+  // Чтение через второй дескриптор (должно быть из кэша)
+  lab2_read(fd2, buffer, sizeof(data1));
+  EXPECT_STREQ(buffer, data1) << "Cache inconsistency between descriptors";
 
-  // Открываем файл заново для проверки персистентности
+  // Синхронизация и проверка на диске
+  lab2_fsync(fd1);
   int sys_fd = open(TEST_FILE, O_RDONLY);
   pread(sys_fd, buffer, sizeof(data1), 0);
   close(sys_fd);
-  EXPECT_STREQ(buffer, data1);
+  EXPECT_STREQ(buffer, data1) << "Fsync failed";
+
+  lab2_close(fd1);
+  lab2_close(fd2);
 }
 
 // 6. Тест переполнения кэша
