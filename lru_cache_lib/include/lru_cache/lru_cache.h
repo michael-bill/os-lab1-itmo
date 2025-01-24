@@ -1,0 +1,61 @@
+#ifndef LRU_CACHE_H
+#define LRU_CACHE_H
+
+#include <unordered_map>
+#include <list>
+#include <vector>
+#include <string>
+#include <unordered_set>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <functional>
+
+class LRUCache {
+public:
+    LRUCache(size_t block_size, size_t capacity);
+    int openFile(const char *path);
+    int closeFile(int fd);
+    ssize_t readFile(int fd, void *buf, size_t count);
+    ssize_t writeFile(int fd, const void *buf, size_t count);
+    off_t seekFile(int fd, off_t offset, int whence);
+    int syncFile(int fd);
+
+private:
+    struct FileDescriptorInfo {
+        int system_fd;
+        off_t current_pos;
+        off_t logical_size;
+        std::string path;
+    };
+
+    using Key = std::pair<int, size_t>;
+
+    struct CacheBlock {
+        Key key;
+        std::vector<char> data;
+        bool dirty;
+        std::list<Key>::iterator lru_iterator;
+    };
+
+    struct KeyHash {
+        size_t operator()(const Key& k) const {
+            return std::hash<int>()(k.first) ^ std::hash<size_t>()(k.second);
+        }
+    };
+
+    size_t block_size;
+    size_t capacity;
+    std::unordered_map<int, FileDescriptorInfo> open_files;
+    std::unordered_map<Key, CacheBlock, KeyHash> cache_map;
+    std::list<Key> lru_list;
+    std::unordered_map<int, std::unordered_set<size_t>> file_blocks;
+    int next_fd;
+
+    void evict();
+    bool loadBlockFromDisk(int fd, size_t block_num, int system_fd, off_t logical_size);
+    bool loadBlockForWrite(int fd, size_t block_num, int system_fd, off_t logical_size);
+    off_t getFileSize(int system_fd) const;
+};
+
+#endif // LRU_CACHE_H

@@ -12,6 +12,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(cmake/CompileOptions.cmake)
 
+add_subdirectory(lru_cache_lib)
+
 add_subdirectory(source)
 
 if(MONOLITH_DEVELOPER)

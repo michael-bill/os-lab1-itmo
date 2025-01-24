@@ -8,6 +8,6 @@ def generate_numbers_file(filename, max_number, target_substring):
         file.write(content)
 
 filename = 'large_text_file.txt'
-max_number = 10_000_000
+max_number = 1_000_000
 target_substring = 'target_substring'
 generate_numbers_file(filename, max_number, target_substring)
